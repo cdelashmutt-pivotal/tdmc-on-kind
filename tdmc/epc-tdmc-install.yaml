@@ -1,0 +1,61 @@
+EnvironmentDetails:
+  Environment: epc
+  StorageClass: standard
+  Provider: generic
+  Insecure: true
+Kubeconfig:
+  Kubeconfig: REPLACE_ME
+VSphereDetails:
+  username: ""
+  password: ""
+  fqdn: ""
+  VSphereNamespace: ""
+  tkgClusterName: kind-tdmc-cp
+  supervisorIp: ""
+ControlPlaneSize:
+  controlPlaneSize: tiny
+ImageRegistryDetails:
+  registryType: JFrog
+  registryUrl: tdh-docker-dev-local.usw1.packages.broadcom.com
+  registryCreds: REPLACE_ME
+  registryCertificate: ""
+CertificateDetails:
+  generateSelfSignedCert: true
+  configureCoreDns: true
+  certificateDomain: example.domain.com
+  certificateCA: ""
+  certificateBody: ""
+  certificateKey: ""
+  idpIp: ""
+  operationQueueIp: ""
+  seaweedFSS3HostIp: ""
+  tdhLoggingHostIp: ""
+  controlPlaneIp: "172.17.0.50"
+  dnsServerTcpIp: "172.17.0.52"
+  dnsServerUdpIp: "172.17.0.51"
+  highAvailability: false
+  dnsServerSecondaryTcpIp: ""
+  dnsServerSecondaryUdpIp: ""
+  deployIngressController: false
+  ingressControllerIp: ""
+SmtpDetails:
+  host: ""
+  port: 0
+  from: ""
+  username: ""
+  password: ""
+  tlsEnabled: false
+  authEnabled: false
+  isInternal: true
+SreLoginDetails:
+  username: admin@tdmc.example.com
+  password: alwaysBeKind#1
+DnsServerDetails:
+  dnsServerTcpIp: ""
+  dnsServerUdpIp: ""
+  externalDnsKey: ""
+  dnsServerPort: 0
+  externalDnsSecret: ""
+  highAvailability: false
+  dnsServerSecondaryTcpIp: ""
+  dnsServerSecondaryUdpIp: ""
