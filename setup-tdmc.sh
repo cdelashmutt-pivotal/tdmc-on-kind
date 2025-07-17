@@ -45,6 +45,7 @@ requires "jq"
 # Check for tdmc CLI config for SRE
 if [ $(tdmc configure list | jq -r '.EndpointUrl == ""') == true ]; then
   echo -e "${YELLOW}SRE configuration not found, use $cp_hostname as the URL, $sre_email as the email, and the configured password${RESET}"
+  tdmc profile create --name default
   tdmc configure
 else
   echo -e "${GREEN}Found SRE configuration, skipping creation${RESET}"
