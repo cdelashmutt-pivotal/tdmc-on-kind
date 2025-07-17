@@ -9,6 +9,17 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
+# Check if kubectl is installed
+if ! command -v kubectl &> /dev/null; then
+    echo -e "${YELLOW}kubectl is not installed. Installing kubectl...${NC}"
+    # Download and install kubectl
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/kubectl
+else
+    echo -e "${GREEN}kubectl is already installed.${NC}"
+fi
+
 # Check if Kind is installed
 if ! command -v kind &> /dev/null; then
     echo -e "${YELLOW}Kind is not installed. Installing Kind...${NC}"
@@ -177,16 +188,16 @@ fi
 if ! kubectl --context kind-tdmc-cp get namespace mds-cp &> /dev/null; then
     echo -e "${YELLOW}The mds-cp namespace doesn't exist, installing TDMC Control Plane...${NC}"
     # Prompt for Broadcom Registry credentials
-    read -p "Enter Broadcom Registry URL: " REGISTRY_URL
+    read -p "Enter Broadcom Registry Hostname: " REGISTRY_HOSTNAME
     read -p "Enter Broadcom Registry Username: " REGISTRY_USERNAME
     read -s -p "Enter Broadcom Registry Password: " REGISTRY_PASSWORD
-    export REGISTRY_URL REGISTRY_USERNAME REGISTRY_PASSWORD
+    export REGISTRY_HOSTNAME REGISTRY_USERNAME REGISTRY_PASSWORD
     echo
     # Install TDMC
     tdmc/tdmc-installer install -f <(
       CPKUBECONFIG=$(kind get kubeconfig -n tdmc-cp) yq -e '.Kubeconfig.Kubeconfig = strenv(CPKUBECONFIG)' tdmc/epc-tdmc-install.yaml |
-      CPREG=$(tdmc/credential-generator -url $REGISTRY_URL -username $REGISTRY_USERNAME -password $REGISTRY_PASSWORD | head -n -2 | tail -n +4 | jq) yq -e '.ImageRegistryDetails.registryCreds = strenv(CPREG)' |
-      yq -e '.ImageRegistryDetails.registryUrl = strenv(REGISTRY_URL)'
+      CPREG=$(tdmc/credential-generator -url $REGISTRY_HOSTNAME -username $REGISTRY_USERNAME -password $REGISTRY_PASSWORD | head -n -2 | tail -n +4 | jq) yq -e '.ImageRegistryDetails.registryCreds = strenv(CPREG)' |
+      yq -e '.ImageRegistryDetails.registryUrl = strenv(REGISTRY_HOSTNAME)'
     )
 else
     echo -e "${GREEN}TDMC Control Plane namespace already exists.  Assuming the Control plane is installed.${NC}"
