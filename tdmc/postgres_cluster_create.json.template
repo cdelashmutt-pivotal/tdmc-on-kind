@@ -1,0 +1,22 @@
+{
+    "name": "test-pg",
+    "serviceType": "POSTGRES",
+    "provider": "tkgs",
+    "dataPlaneId": "$dp1_id",
+    "instanceSize": "XX-SMALL",
+    "tags": [],
+    "dedicated": false,
+    "networkPolicyIds": [
+        "$allow_all_policy_id"
+    ],
+    "version": "postgres-14",
+    "storagePolicyName": "$storage_policy",
+    "shared": true,
+    "clusterMetadata": {
+        "username": "admin",
+        "password": "CHANGE",
+        "database": "test",
+        "extensions": [],
+        "objectStoreId": null
+    }
+}

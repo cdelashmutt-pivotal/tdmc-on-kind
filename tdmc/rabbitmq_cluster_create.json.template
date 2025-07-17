@@ -1,0 +1,13 @@
+{
+    "name": "test-rabbitmq",
+    "serviceType": "RABBITMQ",
+    "provider": "tkgs",
+    "dataPlaneId": "$dp1_id",
+    "instanceSize": "XX-SMALL",
+    "tags": [],
+    "version": "1.5.2",
+    "dedicated": false,
+    "shared": true,
+    "networkPolicyIds": ["$allow_all_policy_id"],
+    "storagePolicyName": "$storage_policy"
+}

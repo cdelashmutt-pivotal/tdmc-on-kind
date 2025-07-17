@@ -1,0 +1,13 @@
+{
+    "name": "tanzu-cluster-tdmc",
+    "type": "tkgs",
+    "shared": true,
+    "orgId": null,
+    "tags": [],
+    "credentials": {
+        "userName": "CHANGE",
+        "password": "CHANGE",
+        "supervisorManagementIP": "CHANGE",
+        "vsphereNamespace": "tdmc"
+    }
+}

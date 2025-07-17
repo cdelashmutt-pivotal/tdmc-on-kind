@@ -181,8 +181,8 @@ if ! command -v tdmc &> /dev/null; then
     # Extract tdmc CLI
     tar -xf downloads/tdmc-cli.tar -C downloads
     # Move tdmc CLI to the current directory
-    mv downloads/bin/tdmc-linux-amd64 tdmc/tdmc-cli
-    chmod +x tdmc/tdmc-cli
+    mv downloads/bin/tdmc-linux-amd64 tdmc/tdmc
+    chmod +x tdmc/tdmc
     # Clean up temporary directory
     rm -rf downloads
     echo -e "${GREEN}tdmc CLI installed successfully.${NC}"

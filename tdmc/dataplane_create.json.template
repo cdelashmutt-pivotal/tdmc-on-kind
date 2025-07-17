@@ -1,0 +1,27 @@
+{
+    "accountId": "${cloud_account_id}",
+    "dataplaneName": "${cluster_name}",
+    "k8sClusterName": "${cluster_name}",
+    "region": "",
+    "dataplaneType": "regular",
+    "certificateId": "${certificate_id}",
+    "storageClasses": [
+        "${storage_policy}"
+    ],
+    "backupStorageClass": "${storage_policy}",
+    "managedDns": true,
+    "orgId": null,
+    "dataPlaneReleaseId": "${dataplane_release_id}",
+    "shared": true,
+    "tags": [],
+    "autoUpgrade": true,
+    "services": [
+        "helm-engine",
+        "mysql",
+        "rabbitmq",
+        "postgres"
+    ],
+    "cpBootstrappedCluster": false,
+    "configureCoreDns": true,
+    "dnsConfigId": "${dns_config_id}"
+}

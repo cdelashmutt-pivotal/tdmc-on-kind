@@ -1,0 +1,19 @@
+{
+    "name": "test-mysql",
+    "serviceType": "MYSQL",
+    "provider": "tkgs",
+    "dataPlaneId": "$dp1_id",
+    "instanceSize": "XX-SMALL",
+    "tags": [],
+    "dedicated": false,
+    "networkPolicyIds": ["$allow_all_policy_id"],
+    "version": "8.0.31",
+    "storagePolicyName": "$storage_policy",
+    "shared": true,
+    "clusterMetadata": {
+        "username": "admin",
+        "password": "CHANGE",
+        "database": "test",
+        "objectStoreId": null
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "name": "Allow All",
+    "description": "A network policy to allow all traffic to all data service types",
+    "networkSpecs": [
+        {
+            "cidr": "0.0.0.0/0",
+            "networkPortIds": [
+                "rmq-metrics",
+                "rmq-streams",
+                "rmq-amqps",
+                "rmq-management",
+                "rmq-mqtt",
+                "postgres-tcp",
+                "postgres-metrics",
+                "postgres-pgadmin",
+                "mysql-tcp",
+                "mysql-manager",
+                "mysql-metrics",
+                "redis-tcp",
+                "redis-sentinel-tcp",
+                "redis-manager",
+                "redis-metrics",
+                "valkey-tcp",
+                "valkey-sentinel-tcp",
+                "valkey-manager",
+                "valkey-metrics"
+            ]
+        }
+    ],
+    "serviceType": "NETWORK"
+}
