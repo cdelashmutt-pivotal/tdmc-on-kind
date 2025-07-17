@@ -218,3 +218,11 @@ if ! kubectl --context kind-tdmc-cp get namespace mds-cp &> /dev/null; then
 else
     echo -e "${GREEN}TDMC Control Plane namespace already exists.  Assuming the Control plane is installed.${NC}"
 fi
+
+# Wait for the TDMC Control Plane to be ready by checking the https endpoint
+echo -n -e "${YELLOW}Waiting for TDMC Control Plane to be ready${NC}"
+while ! curl -s --head --request GET "https://tdmc-cp-epc.example.domain.com" | grep "200 OK" > /dev/null; do
+    echo -n -e "${YELLOW}.${NC}"
+    sleep 5
+done
+echo -e "${GREEN}Connected${NC}"
