@@ -182,10 +182,12 @@ if ! kubectl --context kind-tdmc-cp get namespace mds-cp &> /dev/null; then
     read -s -p "Enter Broadcom Registry Password: " REGISTRY_PASSWORD
     export REGISTRY_URL REGISTRY_USERNAME REGISTRY_PASSWORD
     echo
-    # Create TDMC Control Plane namespace
-    CPKUBECONFIG=$(kind get kubeconfig -n tdmc-cp) yq -e '.Kubeconfig.Kubeconfig = strenv(CPKUBECONFIG)' tdmc/epc-tdmc-install.yaml |
+    # Install TDMC
+    tdmc/tdmc-installer install -f <(
+      CPKUBECONFIG=$(kind get kubeconfig -n tdmc-cp) yq -e '.Kubeconfig.Kubeconfig = strenv(CPKUBECONFIG)' tdmc/epc-tdmc-install.yaml |
       CPREG=$(tdmc/credential-generator -url $REGISTRY_URL -username $REGISTRY_USERNAME -password $REGISTRY_PASSWORD | head -n -2 | tail -n +4 | jq) yq -e '.ImageRegistryDetails.registryCreds = strenv(CPREG)' |
       yq -e '.ImageRegistryDetails.registryUrl = strenv(REGISTRY_URL)'
+    )
 else
     echo -e "${GREEN}TDMC Control Plane namespace already exists.  Assuming the Control plane is installed.${NC}"
 fi
