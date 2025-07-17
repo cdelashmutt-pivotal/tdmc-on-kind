@@ -43,7 +43,7 @@ requires "tdmc"
 requires "jq"
 
 # Check for tdmc CLI config for SRE
-if [ (tdmc configure list | jq -r '.[] | select(.EndpointUrl == "")') ]; then
+if [ $(tdmc configure list | jq -r '.EndpointUrl == ""') == true ]; then
   echo -e "${YELLOW}SRE configuration not found, use $cp_hostname as the URL, $sre_email as the email, and the configured password${RESET}"
   tdmc configure
 else
