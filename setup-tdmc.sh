@@ -55,7 +55,7 @@ echo -ne "Checking for tanzu-cluster-tdmc cloud account: "
 
 if ! tdmc sre cloud-account list | jq -e '.[] | select (.name == "tanzu-cluster-tdmc")' 2>&1 > /dev/null ; then
   echo -e "${GREEN}tanzu-cluster-tdmc cloud account not found, creating${RESET}"
-  tdmc sre cloud-account create -p tkgs -f create_cloud_provider_account.json.template 
+  tdmc sre cloud-account create -p tkgs -f tdmc/create_cloud_provider_account.json.template 
 else
   echo -e "${GREEN}Found tanzu-cluster-tdmc, skipping creation${RESET}"
 fi
@@ -75,8 +75,8 @@ echo -e " ${GREEN}$dns_config_id${RESET}"
 echo -e -n "Getting ID of first Dataplane Release:"
 session_file=$(mktemp -u)
 password=$TDMC_PASSWORD
-http --session=$session_file --verify=false --quiet https://tdmc-cp-epc.example.domain.com/api/authservice/auth/login username=$sre_email password=$sre_password Accept:text/plain
-export dataplane_release_id=$(http --session=$session_file --verify=false GET https://tdmc-cp-epc.example.domain.com/api/infra-connector/dataplane-helm-release/release Accept:application/json | jq -r '._embedded.dataPlaneHelmReleaseDTOes[0].id' )
+http --session=$session_file --verify=false --quiet https://$cp_hostname/api/authservice/auth/login username=$sre_email password=$TDMC_PASSWORD Accept:text/plain
+export dataplane_release_id=$(http --session=$session_file --verify=false GET https://$cp_hostname/api/infra-connector/dataplane-helm-release/release Accept:application/json | jq -r '._embedded.dataPlaneHelmReleaseDTOes[0].id' )
 echo -e " ${GREEN}$dataplane_release_id${RESET}"
 
 for cluster_name in "tdmc-dp-1" "tdmc-dp-2"; do
@@ -86,7 +86,7 @@ for cluster_name in "tdmc-dp-1" "tdmc-dp-2"; do
 
   if ! tdmc sre data-plane list | jq -e '.[] | select (.dataplaneName == "'$cluster_name'")' 2>&1 > /dev/null ; then
     echo -e " ${GREEN}$cluster_name data plane not found, creating${RESET}"
-    tdmc sre data-plane create -p tkgs -f <(envsubst < dataplane_create.json.template)
+    tdmc sre data-plane create -p tkgs -f <(envsubst < tdmc/dataplane_create.json.template)
   else
     echo -e " ${GREEN}Found $cluster_name, skipping creation${RESET}"
   fi
@@ -121,7 +121,7 @@ echo -ne "Getting demo org ID:"
 export org_id=$(tdmc sre org list | jq -r '.[] | select (.name == "demo") | .orgId')
 if [ -z "$org_id" ]; then
   echo -ne " ${GREEN}demo org not found, creating."
-  tdmc sre org create -f <(envsubst < create_org.json.template)
+  tdmc sre org create -f <(envsubst < tdmc/create_org.json.template)
   org_id=$(tdmc sre org list | jq -r '.[] | select (.name == "demo") | .orgId')
   echo -e "  Created with id $org_id${RESET}."
 else
@@ -143,7 +143,7 @@ echo -ne "Checking for Allow All network policy in $TDMC_PROFILE_NAME:"
 export allow_all_policy_id=$(tdmc --profile-name $TDMC_PROFILE_NAME iam network-policy list | jq -r '._embedded.mdsPolicyDTOes.[] | select (.name == "Allow All") | .id')
 if [ -z "$allow_all_policy_id" ]; then
   echo -ne " ${GREEN}Allow All network policy not found, creating."
-  tdmc --profile-name $TDMC_PROFILE_NAME iam network-policy create -f network_policy_create.json.template
+  tdmc --profile-name $TDMC_PROFILE_NAME iam network-policy create -f tdmc/network_policy_create.json.template
   allow_all_policy_id=$(tdmc --profile-name $TDMC_PROFILE_NAME iam network-policy list | jq -r '._embedded.mdsPolicyDTOes.[] | select (.name == "Allow All") | .id')
   echo -e "  Created with id $allow_all_policy_id${RESET}."
 else
@@ -155,7 +155,7 @@ export test_pg_id=$(tdmc --profile-name $TDMC_PROFILE_NAME postgres list | jq -r
 if [ -z "$test_pg_id" ]; then
   echo -e " ${GREEN}test-pg Postgres database not found, creating.${RESET}"
 
-  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs postgres create -f <(envsubst < postgres_cluster_create.json.template) | jq -r '.taskId')
+  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs postgres create -f <(envsubst < tdmc/postgres_cluster_create.json.template) | jq -r '.taskId')
   awaitTask $task_id
   test_pg_id=$(tdmc --profile-name $TDMC_PROFILE_NAME postgres list | jq -r '.[] | select (.name == "test-pg") | .id')
   echo -e "  Created with id $test_pg_id${RESET}."
@@ -168,7 +168,7 @@ export test_mysql_id=$(tdmc --profile-name $TDMC_PROFILE_NAME mysql list | jq -r
 if [ -z "$test_mysql_id" ]; then
   echo -e " ${GREEN}test-mysql MySQL database not found, creating.${RESET}"
 
-  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs mysql create -f <(envsubst < mysql_cluster_create.json.template) | jq -r '.taskId')
+  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs mysql create -f <(envsubst < tdmc/mysql_cluster_create.json.template) | jq -r '.taskId')
   awaitTask $task_id
 
   test_mysql_id=$(tdmc --profile-name $TDMC_PROFILE_NAME mysql list | jq -r '.[] | select (.name == "test-mysql") | .id')
@@ -182,7 +182,7 @@ export test_rabbitmq_id=$(tdmc --profile-name $TDMC_PROFILE_NAME rmq list | jq -
 if [ -z "$test_rabbitmq_id" ]; then
   echo -e " ${GREEN}test-rabbitmq RabbitMQ service not found, creating.${RESET}"
 
-  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs rmq create -f <(envsubst < rabbitmq_cluster_create.json.template) | jq -r '.taskId')
+  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs rmq create -f <(envsubst < tdmc/rabbitmq_cluster_create.json.template) | jq -r '.taskId')
   awaitTask $task_id
   
   test_rabbitmq_id=$(tdmc --profile-name $TDMC_PROFILE_NAME rmq list | jq -r '.[] | select (.name == "test-rabbitmq") | .id')
@@ -196,7 +196,7 @@ export test_valkey_id=$(tdmc --profile-name $TDMC_PROFILE_NAME valkey list | jq 
 if [ -z "$test_valkey_id" ]; then
   echo -e " ${GREEN}test-valkey Valkey service not found, creating.${RESET}"
 
-  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs valkey create -f <(envsubst < valkey_cluster_create.json.template) | jq -r '.taskId')
+  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs valkey create -f <(envsubst < tdmc/valkey_cluster_create.json.template) | jq -r '.taskId')
   awaitTask $task_id
   
   test_valkey_id=$(tdmc --profile-name $TDMC_PROFILE_NAME valkey list | jq -r '.[] | select (.name == "test-valkey") | .id')
