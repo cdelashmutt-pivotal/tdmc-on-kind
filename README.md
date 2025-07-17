@@ -25,6 +25,7 @@
 * Create kind cluster tdmc-cp with kind-config-tdmc-cp.yaml config.
 * Create two kind clusters (tdmc-dp1, tdmc-dp2) with kind-config-tdmc-dp.yaml
 * Run the kind cloud provider
+  * Note, as of creation of these instructions, the v0.7.0 container image version hadn't been created, so you will need to clone and build that container image first.
   * `docker run -d --network host -v /var/run/docker.sock:/var/run/docker.sock --name cloud-provider-kind registry.k8s.io/cloud-provider-kind/cloud-controller-manager:v0.7.0`
 * Run a Minio Container
   * mkdir -p ${HOME}/minio/data ${HOME}/minio/certs
@@ -45,7 +46,6 @@
       extendedKeyUsage = serverAuth
       subjectAltName = @alt_names
       [alt_names]
-      IP.1 = 172.17.0.19
       DNS.1 = minio.kind
       ```
     * `openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout private.key -out public.crt -config san.cnf`

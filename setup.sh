@@ -113,7 +113,7 @@ fi
 if ! docker ps | grep -q "cloud-provider-kind"; then
     echo -e "${YELLOW}cloud-provider-kind is not running. Starting cloud-provider-kind...${NC}"
     # Start kind-cloud-provider
-    docker run -d --network host -v /var/run/docker.sock:/var/run/docker.sock --name cloud-provider-kind registry.k8s.io/cloud-provider-kind/cloud-controller-manager:v0.7.0-dev
+    docker run -d --network host -v /var/run/docker.sock:/var/run/docker.sock --name cloud-provider-kind registry.k8s.io/cloud-provider-kind/cloud-controller-manager:v0.7.0
 else
     echo -e "${GREEN}cloud-provider-kind is already running.${NC}"
 fi
@@ -171,6 +171,25 @@ else
     echo -e "${GREEN}tdmc-installer is already present.${NC}"
 fi
 
+# Check if tdmc CLI is installed
+if ! command -v tdmc &> /dev/null; then
+    echo -e "${YELLOW}tdmc CLI is not installed. Installing tdmc CLI...${NC}"
+    # Create temporary directory for tdmc-installer
+    mkdir -p downloads
+    # Download and install tdmc CLI
+    wget --no-check-certificate -O downloads/tdmc-cli.tar https://10.84.76.19/tdmc/tdmc-cli-1.1.1-3ff888.tar
+    # Extract tdmc CLI
+    tar -xf downloads/tdmc-cli.tar -C downloads
+    # Move tdmc CLI to the current directory
+    mv downloads/bin/tdmc-linux-amd64 tdmc/tdmc-cli
+    chmod +x tdmc/tdmc-cli
+    # Clean up temporary directory
+    rm -rf downloads
+    echo -e "${GREEN}tdmc CLI installed successfully.${NC}"
+else
+    echo -e "${GREEN}tdmc CLI is already installed.${NC}"
+fi
+
 # Check if inotify.max_user_instances and inotify.max_user_watches are set
 if [ ! -f /etc/sysctl.d/increase-inotify.conf ]; then
     echo -e "${YELLOW}Setting inotify.max_user_instances and inotify.max_user_watches...${NC}"
@@ -226,3 +245,4 @@ while ! curl -s --head --request GET "https://tdmc-cp-epc.example.domain.com" -k
     sleep 5
 done
 echo -e "${GREEN}Connected${NC}"
+
