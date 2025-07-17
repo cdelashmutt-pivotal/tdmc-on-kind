@@ -46,7 +46,9 @@
       subjectAltName = @alt_names
       [alt_names]
       IP.1 = 172.17.0.19
+      DNS.1 = minio.kind
       ```
+    * `openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout private.key -out public.crt -config san.cnf`
   * docker run -d -p 9000:9000 -p 9001:9001 --user $(id -u):$(id -g) --name minio -e "MINIO_ROOT_USER=ROOTUSER" -e "MINIO_ROOT_PASSWORD=CHANGEME123" -v ${HOME}/minio/data:/data -v ${HOME}/minio/certs:/opt/certs --network kind quay.io/minio/minio server /data --console-address ":9001" --certs-dir /opt/certs
 * Put tdmc-installer on jumpbox
   * Prereleases at https://usw1.packages.broadcom.com/ui/repos/tree/General/tdh-generic-dev-local/tdh-internal/tdmc-installer
