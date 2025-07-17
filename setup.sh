@@ -184,6 +184,22 @@ else
     echo -e "${GREEN}inotify settings are already set.${NC}"
 fi
 
+# Add in systemd resolved.conf.d file for TDMC Domain
+if [ ! -f /etc/systemd/resolved.conf.d/tdmc.conf ]; then
+    echo -e "${YELLOW}Creating systemd resolved.conf.d file for TDMC Domain...${NC}"
+    # Create the directory if it doesn't exist
+    sudo mkdir -p /etc/systemd/resolved.conf.d
+    # Create the configuration file for TDMC Domain
+    echo "[Resolve]" | sudo tee /etc/systemd/resolved.conf.d/tdmc.conf
+    echo "Domains=~example.domain.com" | sudo tee -a /etc/systemd/resolved.conf.d/tdmc.conf
+    echo "DNS=172.17.0.51" | sudo tee -a /etc/systemd/resolved.conf.d/tdmc.conf
+    # Restart systemd-resolved service
+    sudo systemctl restart systemd-resolved
+    echo -e "${GREEN}systemd resolved.conf.d file for TDMC Domain created successfully.${NC}"
+else
+    echo -e "${GREEN}systemd resolved.conf.d file for TDMC Domain already exists.${NC}"
+fi
+
 # Check if the TDMC Control Plane namespace exists
 if ! kubectl --context kind-tdmc-cp get namespace mds-cp &> /dev/null; then
     echo -e "${YELLOW}The mds-cp namespace doesn't exist, installing TDMC Control Plane...${NC}"
