@@ -59,8 +59,8 @@
 * Install TDMC
   * `./tdmc-installer-linux-amd64 install -f tdmc-installer.yaml`
 * Onramp TKGM Cloud Accounts
-  * `kind get kubeconfig --name=tdmc-dp1 | DP_IP="https://$(docker inspect tdmc-dp1-control-plane | jq -r '.[0].NetworkSettings.Networks.kind.IPAddress'):6443" yq e '.clusters[0].cluster.server = strenv(DP_IP)' | base64 -w0`
-  * `kind get kubeconfig --name=tdmc-dp2 | DP_IP="https://$(docker inspect tdmc-dp2-control-plane | jq -r '.[0].NetworkSettings.Networks.kind.IPAddress'):6443" yq e '.clusters[0].cluster.server = strenv(DP_IP)' | base64 -w0`
+  * `kind get kubeconfig --name=tdmc-dp-1 | DP_IP="https://$(docker inspect tdmc-dp1-control-plane | jq -r '.[0].NetworkSettings.Networks.kind.IPAddress'):6443" yq e '.clusters[0].cluster.server = strenv(DP_IP)' | base64 -w0`
+  * `kind get kubeconfig --name=tdmc-dp-2 | DP_IP="https://$(docker inspect tdmc-dp2-control-plane | jq -r '.[0].NetworkSettings.Networks.kind.IPAddress'):6443" yq e '.clusters[0].cluster.server = strenv(DP_IP)' | base64 -w0`
 * Onramp Data Plane Clusters
 * Add minio as external object storage with credentials used above.
 * Create Org called "Test Org", and make admin@tdmc.example.com the admin
@@ -68,10 +68,3 @@
 * Switch to Org, go to "Identities & Access Management" -> "Policies" and create an "allow-all" network policy.
   * CIDR: 0.0.0.0/0
   * Check all ports
-
-
-Restarts
-* You will need to heal the ips in the mds-infra/tds-dns-server-bind-config and kube-system/tdh-dns as the kind cloud provider might change the IPs of services.
-  * Grab the UDP dns server service IP, and the traefik service IP to replace into the configmap, and then restart the mds-infra/tdh-dns-server statefulset.
-  * Delete the old kindccm-* pods
-  * Relaunch the cloud-provider-kind pod

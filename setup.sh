@@ -61,6 +61,16 @@ else
     echo -e "${GREEN}kubectx is already installed.${NC}"
 fi
 
+# Check if yq is installed
+if ! command -v yq &> /dev/null; then
+    echo -e "${YELLOW}yq is not installed. Installing yq...${NC}"
+    # Download and install yq
+    wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq &&\
+    chmod +x /usr/local/bin/yq
+else
+    echo -e "${GREEN}yq is already installed.${NC}"
+fi
+
 # Check for tdmc-cp cluster
 if ! kind get clusters | grep -q "tdmc-cp"; then
     echo -e "${YELLOW}tdmc-cp cluster not found. Creating tdmc-cp cluster...${NC}"
@@ -150,3 +160,29 @@ else
     echo -e "${GREEN}tdmc-installer is already present.${NC}"
 fi
 
+# Check if inotify.max_user_instances and inotify.max_user_watches are set
+if [ ! -f /etc/sysctl.d/increase-inotify.conf ]; then
+    echo -e "${YELLOW}Setting inotify.max_user_instances and inotify.max_user_watches...${NC}"
+    # Create sysctl configuration file for inotify
+    echo "fs.inotify.max_user_instances=512" | sudo tee /etc/sysctl.d/increase-inotify.conf
+    echo "fs.inotify.max_user_watches=524288" | sudo tee -a /etc/sysctl.d/increase-inotify.conf
+    # Apply the changes
+    sudo sysctl --system
+    echo -e "${GREEN}inotify settings applied successfully.${NC}"
+else
+    echo -e "${GREEN}inotify settings are already set.${NC}"
+fi
+
+# Check if the TDMC Control Plane namespace exists
+if ! kubectl --context kind-tdmc-cp get namespace mds-cp &> /dev/null; then
+    echo -e "${YELLOW}The mds-cp namespace doesn't exist, installing TDMC Control Plane...${NC}"
+    # Prompt for Broadcom Registry credentials
+    read -p "Enter Broadcom Registry Username: " REGISTRY_USERNAME
+    read -s -p "Enter Broadcom Registry Password: " REGISTRY_PASSWORD
+    export REGISTRY_USERNAME REGISTRY_PASSWORD
+    echo
+    # Create TDMC Control Plane namespace
+    CPKUBECONFIG=$(kind get kubeconfig -n tdmc-cp) yq -e '.Kubeconfig.Kubeconfig = strenv(CPKUBECONFIG)' tdmc/epc-tdmc-install.yaml | CPREG=$(tdmc/credential-generator -url "tdh-docker-dev-local.usw1.packages.broadcom.com" -username $REGISTRY_USERNAME -password $REGISTRY_PASSWORD | head -n -2 | tail -n +4 | jq) yq -e '.ImageRegistryDetails.registryCreds = strenv(CPREG)'
+else
+    echo -e "${GREEN}TDMC Control Plane namespace already exists.  Assuming the Control plane is installed.${NC}"
+fi
