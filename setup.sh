@@ -221,7 +221,7 @@ fi
 
 # Wait for the TDMC Control Plane to be ready by checking the https endpoint
 echo -n -e "${YELLOW}Waiting for TDMC Control Plane to be ready${NC}"
-while ! curl -s --head --request GET "https://tdmc-cp-epc.example.domain.com" | grep "200 OK" > /dev/null; do
+while ! curl -s --head --request GET "https://tdmc-cp-epc.example.domain.com" -k | grep "200 OK" > /dev/null; do
     echo -n -e "${YELLOW}.${NC}"
     sleep 5
 done
