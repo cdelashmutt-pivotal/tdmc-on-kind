@@ -65,7 +65,7 @@ fi
 if ! kind get clusters | grep -q "tdmc-cp"; then
     echo -e "${YELLOW}tdmc-cp cluster not found. Creating tdmc-cp cluster...${NC}"
     # Create tdmc-cp cluster
-    kind create cluster --name tdmc-cp --config tdmc/kind-config-tdmc-cp.yaml
+    kind create cluster --name tdmc-cp --config kind/kind-config-tdmc-cp.yaml
 else
     echo -e "${GREEN}tdmc-cp cluster already exists.${NC}"
 fi
@@ -74,7 +74,7 @@ fi
 if ! kind get clusters | grep -q "tdmc-dp-1"; then
     echo -e "${YELLOW}tdmc-dp-1 cluster not found. Creating tdmc-dp-1 cluster...${NC}"
     # Create tdmc-dp-1 cluster
-    kind create cluster --name tdmc-dp-1 --config tdmc/kind-config-tdmc-dp-1.yaml
+    kind create cluster --name tdmc-dp-1 --config kind/kind-config-tdmc-dp-1.yaml
 else
     echo -e "${GREEN}tdmc-dp-1 cluster already exists.${NC}"
 fi
@@ -83,7 +83,7 @@ fi
 if ! kind get clusters | grep -q "tdmc-dp-2"; then
     echo -e "${YELLOW}tdmc-dp-2 cluster not found. Creating tdmc-dp-2 cluster...${NC}"
     # Create tdmc-dp-2 cluster
-    kind create cluster --name tdmc-dp-2 --config tdmc/kind-config-tdmc-dp-2.yaml
+    kind create cluster --name tdmc-dp-2 --config kind/kind-config-tdmc-dp-2.yaml
 else
     echo -e "${GREEN}tdmc-dp-2 cluster already exists.${NC}"
 fi
