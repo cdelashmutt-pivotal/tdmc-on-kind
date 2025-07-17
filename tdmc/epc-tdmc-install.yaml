@@ -16,7 +16,7 @@ ControlPlaneSize:
   controlPlaneSize: tiny
 ImageRegistryDetails:
   registryType: JFrog
-  registryUrl: tdh-docker-dev-local.usw1.packages.broadcom.com
+  registryUrl: tdmc.packages.broadcom.com
   registryCreds: REPLACE_ME
   registryCertificate: ""
 CertificateDetails:
