@@ -138,10 +138,10 @@ if [ ! -f tdmc/tdmc-installer ]; then
     # Extract tdmc-installer
     tar -xf downloads/tdmc-installer.tar -C downloads
     # Move tdmc-installer to the current directory
-    mv downloads/tdmc-installer/tdmc-installer-linux-amd64 tdmc/tdmc-installer
+    mv downloads/bin/tdmc-installer-linux-amd64 tdmc/tdmc-installer
     chmod +x tdmc/tdmc-installer
     # Move the credential-generator to the tdmc directory
-    mv downloads/tdmc-installer/credential-generator-linux-amd64 tdmc/credential-generator
+    mv downloads/bin/credential-generator-linux-amd64 tdmc/credential-generator
     chmod +x tdmc/credential-generator
     # Clean up temporary directory
     rm -rf downloads
