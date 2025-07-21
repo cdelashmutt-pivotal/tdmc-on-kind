@@ -1,5 +1,13 @@
 # TDMC on EPC
+## Prework for install
 * Delete all Harbor containers on Jumpbox
+
+## Automated install
+* Run `./setup-clusters.sh` to set up the Jumpbox, requisite kind clusters and kind cloud provider pod.
+* Export the environment variable `TDMC_PASSWORD` to the default value `alwaysBeKind#1` in the terminal session you are running the setup on.
+* Run `./setup-tdmc.sh` to configure TDMC with a default org and service instances of each service for testing
+
+## Manual Install
 * Install kind:
   * ```curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-amd64 && sudo install -m 755 ./kind /usr/local/bin/kind```
 * Install k9s
@@ -59,8 +67,8 @@
 * Install TDMC
   * `./tdmc-installer-linux-amd64 install -f tdmc-installer.yaml`
 * Onramp TKGM Cloud Accounts
-  * `kind get kubeconfig --name=tdmc-dp-1 | DP_IP="https://$(docker inspect tdmc-dp1-control-plane | jq -r '.[0].NetworkSettings.Networks.kind.IPAddress'):6443" yq e '.clusters[0].cluster.server = strenv(DP_IP)' | base64 -w0`
-  * `kind get kubeconfig --name=tdmc-dp-2 | DP_IP="https://$(docker inspect tdmc-dp2-control-plane | jq -r '.[0].NetworkSettings.Networks.kind.IPAddress'):6443" yq e '.clusters[0].cluster.server = strenv(DP_IP)' | base64 -w0`
+  * `kind get kubeconfig --name=tdmc-dp-1 | DP_IP="https://$(docker inspect tdmc-dp-1-control-plane | jq -r '.[0].NetworkSettings.Networks.kind.IPAddress'):6443" yq e '.clusters[0].cluster.server = strenv(DP_IP)' | base64 -w0`
+  * `kind get kubeconfig --name=tdmc-dp-2 | DP_IP="https://$(docker inspect tdmc-d-2-control-plane | jq -r '.[0].NetworkSettings.Networks.kind.IPAddress'):6443" yq e '.clusters[0].cluster.server = strenv(DP_IP)' | base64 -w0`
 * Onramp Data Plane Clusters
 * Add minio as external object storage with credentials used above.
 * Create Org called "Test Org", and make admin@tdmc.example.com the admin

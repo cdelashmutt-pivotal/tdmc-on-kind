@@ -1,13 +1,10 @@
 {
-    "name": "tanzu-cluster-tdmc",
-    "type": "tkgs",
+    "name": "$cloud_provider_name",
+    "type": "tkgm",
     "shared": true,
     "orgId": null,
     "tags": [],
     "credentials": {
-        "userName": "CHANGE",
-        "password": "CHANGE",
-        "supervisorManagementIP": "CHANGE",
-        "vsphereNamespace": "tdmc"
+        "kubeconfigBase64": "$cloud_provider_kubeconfig"
     }
 }

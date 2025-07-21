@@ -1,7 +1,7 @@
 {
     "name": "test-mysql",
     "serviceType": "MYSQL",
-    "provider": "tkgs",
+    "provider": "tkgm",
     "dataPlaneId": "$dp1_id",
     "instanceSize": "XX-SMALL",
     "tags": [],
@@ -12,7 +12,7 @@
     "shared": true,
     "clusterMetadata": {
         "username": "admin",
-        "password": "CHANGE",
+        "password": "alwaysBeKind#1",
         "database": "test",
         "objectStoreId": null
     }

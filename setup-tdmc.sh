@@ -41,6 +41,7 @@ RESET="\e[0m"
 
 requires "tdmc"
 requires "jq"
+requires "http"
 
 # Check for tdmc CLI config for SRE
 if [ $(tdmc configure list | jq -r '.EndpointUrl == ""') == true ]; then
@@ -51,21 +52,8 @@ else
   echo -e "${GREEN}Found SRE configuration, skipping creation${RESET}"
 fi
 
-echo -ne "Checking for tanzu-cluster-tdmc cloud account: "
-
-if ! tdmc sre cloud-account list | jq -e '.[] | select (.name == "tanzu-cluster-tdmc")' 2>&1 > /dev/null ; then
-  echo -e "${GREEN}tanzu-cluster-tdmc cloud account not found, creating${RESET}"
-  tdmc sre cloud-account create -p tkgs -f tdmc/create_cloud_provider_account.json.template 
-else
-  echo -e "${GREEN}Found tanzu-cluster-tdmc, skipping creation${RESET}"
-fi
-
-echo -e -n "Getting ID for cloud account tanzu-cluster-tdmc:"
-export cloud_account_id=$(tdmc sre cloud-account list | jq -r '.[] | select (.name == "tanzu-cluster-tdmc") | .id')
-echo -e " ${GREEN}$cloud_account_id${RESET}"
-
-echo -e -n "Getting ID for certificate tdmc.tanzu.lab-tkgs-cert:"
-export certificate_id=$(tdmc sre certificate list | jq -r '.[] | select (.name == "tdmc.tanzu.lab-tkgs-cert") | .id')
+echo -e -n "Getting ID for certificate example.domain.com-tkgm-cert:"
+export certificate_id=$(tdmc sre certificate list | jq -r '.[] | select (.name == "example.domain.com-tkgm-cert") | .id')
 echo -e " ${GREEN}$certificate_id${RESET}"
 
 echo -e -n "Getting ID for DNS config tdh-managed-dns:"
@@ -79,21 +67,38 @@ http --session=$session_file --verify=false --quiet https://$cp_hostname/api/aut
 export dataplane_release_id=$(http --session=$session_file --verify=false GET https://$cp_hostname/api/infra-connector/dataplane-helm-release/release Accept:application/json | jq -r '._embedded.dataPlaneHelmReleaseDTOes[0].id' )
 echo -e " ${GREEN}$dataplane_release_id${RESET}"
 
-for cluster_name in "tdmc-dp-1" "tdmc-dp-2"; do
+echo -ne "Checking for cloud accounts: "
+for cloud_provider_name in "tdmc-dp-1" "tdmc-dp-2"; do
 
-  export cluster_name
+  if ! tdmc sre cloud-account list | jq -e '.[]? | select (.name == "'$cloud_provider_name'")' 2>&1 > /dev/null ; then
+    echo -e "${GREEN}$cloud_provider_name cloud account not found, creating${RESET}"
+    export cloud_provider_name
+    export cloud_provider_kubeconfig=$(kind get kubeconfig --name=$cloud_provider_name | DP_IP="https://$(docker inspect $cloud_provider_name-control-plane | jq -r '.[0].NetworkSettings.Networks.kind.IPAddress'):6443" yq e '.clusters[0].cluster.server = strenv(DP_IP)' | base64 -w0)
+    tdmc sre cloud-account create -p tkgm -f <(envsubst < tdmc/create_cloud_provider_account.json.template)
+  else
+    echo -e "${GREEN}Found $cloud_provider_name cloud account, skipping creation${RESET}"
+  fi
+
+done
+
+for cluster_name in "tdmc-dp-1" "tdmc-dp-2"; do
+  echo -e -n "Getting ID for cloud account $cluster_name:"
+  export cloud_account_id=$(tdmc sre cloud-account list | jq -r '.[] | select (.name == "'$cluster_name'") | .id')
+  echo -e " ${GREEN}$cloud_account_id${RESET}"
+
+  export cluster_name="kind-$cluster_name"
   echo -ne "Checking for ${cluster_name} data plane:"
 
-  if ! tdmc sre data-plane list | jq -e '.[] | select (.dataplaneName == "'$cluster_name'")' 2>&1 > /dev/null ; then
+  if ! tdmc sre data-plane list | jq -e '.[]? | select (.dataplaneName == "'$cluster_name'")' 2>&1 > /dev/null ; then
     echo -e " ${GREEN}$cluster_name data plane not found, creating${RESET}"
-    tdmc sre data-plane create -p tkgs -f <(envsubst < tdmc/dataplane_create.json.template)
+    tdmc sre data-plane create -p tkgm -f <(envsubst < tdmc/dataplane_create.json.template)
   else
     echo -e " ${GREEN}Found $cluster_name, skipping creation${RESET}"
   fi
 
 done
 
-for cluster_name in "tdmc-dp-1" "tdmc-dp-2"; do
+for cluster_name in "kind-tdmc-dp-1" "kind-tdmc-dp-2"; do
   dp_status=""
   until [ "$dp_status" == "DATA_PLANE_READY" ]; do
     echo -ne "Waiting for $cluster_name data plane ready:"
@@ -109,12 +114,12 @@ for cluster_name in "tdmc-dp-1" "tdmc-dp-2"; do
   echo 
 done
 
-echo -ne "Getting tdmc-dp-1 data plane ID:"
-export dp1_id=$(tdmc sre data-plane list | jq -r '.[] | select (.name == "tdmc-dp-1") | .id')
+echo -ne "Getting kind-tdmc-dp-1 data plane ID:"
+export dp1_id=$(tdmc sre data-plane list | jq -r '.[] | select (.name == "kind-tdmc-dp-1") | .id')
 echo -e " ${GREEN}$dp1_id${RESET}"
 
-echo -ne "Getting tdmc-dp-2 data plane ID:"
-export dp2_id=$(tdmc sre data-plane list | jq -r '.[] | select (.name == "tdmc-dp-2") | .id')
+echo -ne "Getting kind-tdmc-dp-2 data plane ID:"
+export dp2_id=$(tdmc sre data-plane list | jq -r '.[] | select (.name == "kind-tdmc-dp-2") | .id')
 echo -e " ${GREEN}$dp2_id${RESET}"
 
 echo -ne "Getting demo org ID:"
@@ -131,7 +136,7 @@ fi
 echo -ne "Checking for $TDMC_PROFILE_NAME profile:"
 if [ ! $(tdmc profile list | jq -r '. | any(index("$TDMC_PROFILE_NAME"))') == 'true' ]; then
   echo -e " ${GREEN}$TDMC_PROFILE_NAME profile not found, creating${RESET}"
-  tdmc profile create --name $TDMC_PROFILE_NAME --org $org_id --username 'grog@grogscave.net'
+  tdmc profile create --name $TDMC_PROFILE_NAME --org $org_id --username $sre_email
 else
   echo -e " ${GREEN}Found $TDMC_PROFILE_NAME profile, skipping creation${RESET}"
 fi
@@ -140,11 +145,11 @@ echo -ne "Enable Self-DR: ${RED}must do manually${RESET} https://techdocs.broadc
 read
 
 echo -ne "Checking for Allow All network policy in $TDMC_PROFILE_NAME:"
-export allow_all_policy_id=$(tdmc --profile-name $TDMC_PROFILE_NAME iam network-policy list | jq -r '._embedded.mdsPolicyDTOes.[] | select (.name == "Allow All") | .id')
+export allow_all_policy_id=$(tdmc --profile-name $TDMC_PROFILE_NAME iam network-policy list | jq -r '._embedded.mdsPolicyDTOes | .[]? | select (.name == "Allow All") | .id')
 if [ -z "$allow_all_policy_id" ]; then
   echo -ne " ${GREEN}Allow All network policy not found, creating."
   tdmc --profile-name $TDMC_PROFILE_NAME iam network-policy create -f tdmc/network_policy_create.json.template
-  allow_all_policy_id=$(tdmc --profile-name $TDMC_PROFILE_NAME iam network-policy list | jq -r '._embedded.mdsPolicyDTOes.[] | select (.name == "Allow All") | .id')
+  allow_all_policy_id=$(tdmc --profile-name $TDMC_PROFILE_NAME iam network-policy list | jq -r '._embedded.mdsPolicyDTOes | .[] | select (.name == "Allow All") | .id')
   echo -e "  Created with id $allow_all_policy_id${RESET}."
 else
   echo -e " ${GREEN}Found Allow All network policy with id $allow_all_policy_id, skipping creation${RESET}"
@@ -154,8 +159,7 @@ echo -ne "Checking for test-pg Postgres database in $TDMC_PROFILE_NAME:"
 export test_pg_id=$(tdmc --profile-name $TDMC_PROFILE_NAME postgres list | jq -r '.[]? | select (.name == "test-pg") | .id')
 if [ -z "$test_pg_id" ]; then
   echo -e " ${GREEN}test-pg Postgres database not found, creating.${RESET}"
-
-  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs postgres create -f <(envsubst < tdmc/postgres_cluster_create.json.template) | jq -r '.taskId')
+  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgm postgres create -f <(envsubst < tdmc/postgres_cluster_create.json.template) | jq -r '.taskId')
   awaitTask $task_id
   test_pg_id=$(tdmc --profile-name $TDMC_PROFILE_NAME postgres list | jq -r '.[] | select (.name == "test-pg") | .id')
   echo -e "  Created with id $test_pg_id${RESET}."
@@ -168,7 +172,7 @@ export test_mysql_id=$(tdmc --profile-name $TDMC_PROFILE_NAME mysql list | jq -r
 if [ -z "$test_mysql_id" ]; then
   echo -e " ${GREEN}test-mysql MySQL database not found, creating.${RESET}"
 
-  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs mysql create -f <(envsubst < tdmc/mysql_cluster_create.json.template) | jq -r '.taskId')
+  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgm mysql create -f <(envsubst < tdmc/mysql_cluster_create.json.template) | jq -r '.taskId')
   awaitTask $task_id
 
   test_mysql_id=$(tdmc --profile-name $TDMC_PROFILE_NAME mysql list | jq -r '.[] | select (.name == "test-mysql") | .id')
@@ -182,7 +186,7 @@ export test_rabbitmq_id=$(tdmc --profile-name $TDMC_PROFILE_NAME rmq list | jq -
 if [ -z "$test_rabbitmq_id" ]; then
   echo -e " ${GREEN}test-rabbitmq RabbitMQ service not found, creating.${RESET}"
 
-  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs rmq create -f <(envsubst < tdmc/rabbitmq_cluster_create.json.template) | jq -r '.taskId')
+  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgm rmq create -f <(envsubst < tdmc/rabbitmq_cluster_create.json.template) | jq -r '.taskId')
   awaitTask $task_id
   
   test_rabbitmq_id=$(tdmc --profile-name $TDMC_PROFILE_NAME rmq list | jq -r '.[] | select (.name == "test-rabbitmq") | .id')
@@ -196,7 +200,7 @@ export test_valkey_id=$(tdmc --profile-name $TDMC_PROFILE_NAME valkey list | jq 
 if [ -z "$test_valkey_id" ]; then
   echo -e " ${GREEN}test-valkey Valkey service not found, creating.${RESET}"
 
-  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgs valkey create -f <(envsubst < tdmc/valkey_cluster_create.json.template) | jq -r '.taskId')
+  task_id=$(tdmc --profile-name $TDMC_PROFILE_NAME -p tkgm valkey create -f <(envsubst < tdmc/valkey_cluster_create.json.template) | jq -r '.taskId')
   awaitTask $task_id
   
   test_valkey_id=$(tdmc --profile-name $TDMC_PROFILE_NAME valkey list | jq -r '.[] | select (.name == "test-valkey") | .id')

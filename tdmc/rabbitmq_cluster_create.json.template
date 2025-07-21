@@ -1,7 +1,7 @@
 {
     "name": "test-rabbitmq",
     "serviceType": "RABBITMQ",
-    "provider": "tkgs",
+    "provider": "tkgm",
     "dataPlaneId": "$dp1_id",
     "instanceSize": "XX-SMALL",
     "tags": [],

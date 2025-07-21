@@ -2,19 +2,19 @@
     "name": "test-pg",
     "serviceType": "POSTGRES",
     "provider": "tkgm",
-    "dataPlaneId": "$dp1_id",
+    "dataPlaneId": "207d7f5a-8122-4c5e-8d48-3da8c1fcd3e3",
     "instanceSize": "XX-SMALL",
     "tags": [],
     "dedicated": false,
     "networkPolicyIds": [
-        "$allow_all_policy_id"
+        "3911236b-729a-422c-9b27-0db1c5f78aa7"
     ],
     "version": "postgres-14",
-    "storagePolicyName": "$storage_policy",
+    "storagePolicyName": "standard",
     "shared": true,
     "clusterMetadata": {
         "username": "admin",
-        "password": "alwaysBeKind#1",
+        "password": "CHANGE",
         "database": "test",
         "extensions": [],
         "objectStoreId": null
